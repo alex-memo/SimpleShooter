@@ -1,60 +1,60 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-/// <summary>
-/// @memo 2023
-/// Script for the player movement
-/// </summary>
-public class PlayerMovement : MonoBehaviour
+[RequireComponent(typeof(Controller))]
+public abstract class MovementScript : MonoBehaviour
 {
-    private CharacterController characterController;
+    protected CharacterController characterController;
 
-    private float speed;
-    private readonly float walkSpeed = 3f;
-    private readonly float runSpeed = 5f;
+    protected float speed;
+    protected readonly float walkSpeed = 3f;
+    protected readonly float runSpeed = 5f;
 
-    private readonly float turnSmoothTime = .2f;
-    private float turnSmoothVelocity;
+    protected readonly float turnSmoothTime = .2f;
+    protected float turnSmoothVelocity;
 
-    private readonly float jumpHeight = 1.25f;
-    private readonly float gravity = -9.81f;
-    private bool isGrounded;
-    private readonly float groundCheckDistance = .2f;
+    protected readonly float jumpHeight = 1.25f;
+    protected readonly float gravity = -9.81f;
+    protected bool isGrounded=> Physics.CheckSphere(groundCheck.position, groundCheckDistance, groundMask);
+    protected readonly float groundCheckDistance = .2f;
 
-    private Vector3 velocity;
+    protected Vector3 velocity;
 
-    private Vector3 direction;
+    protected Vector3 direction;
 
-    private Transform cam;
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private LayerMask groundMask;
+    protected Transform cam;
+    [SerializeField] protected Transform groundCheck;
+    [SerializeField] protected LayerMask groundMask;
 
-    private bool isRunning;
-    private Animator anim;
+    protected bool isRunning;
+    protected Animator anim;
     /// <summary>
     /// Sets variables
     /// </summary>
-    private void Awake()
+    protected virtual void Awake()
     {
-        anim= GetComponent<Animator>();
+        anim = GetComponent<Animator>();
         cam = Camera.main.transform;
         characterController = GetComponent<CharacterController>();
     }
     /// <summary>
+    /// Handles gravity and movement
+    /// </summary>
+    protected void FixedUpdate()
+    {
+        if(characterController!= null)
+        {
+            velocity.y += gravity * Time.deltaTime;
+            characterController.Move(velocity * Time.deltaTime);
+        }      
+    }
+    /// <summary>
     /// Calls the handlers
     /// </summary>
-    private void Update()
+    protected virtual void Update()
     {
         movePlayer();
         move();
     }
-    /// <summary>
-    /// Handles gravity and movement
-    /// </summary>
-    private void FixedUpdate()
-    {
-        velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
-    }
+
     /// <summary>
     /// @memo 2023
     /// Handles the player movement
@@ -85,7 +85,6 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void movePlayer()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckDistance, groundMask);
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -98,40 +97,9 @@ public class PlayerMovement : MonoBehaviour
     }
     /// <summary>
     /// @memo 2023
-    /// Called externally by new input system to set the movement value
-    /// </summary>
-    /// <param name="_value"></param>
-    private void OnMovement(InputValue _value)
-    {
-        Vector2 _v2 = _value.Get<Vector2>();
-        direction = new Vector3(_v2.x,0,_v2.y);
-    }
-    /// <summary>
-    /// @memo 2023
-    /// Called externally by new input system to run
-    /// </summary>
-    /// <param name="_value"></param>
-    private void OnRun(InputValue _value)
-    {
-        isRunning = _value.Get<float>() > 0;
-    }
-    /// <summary>
-    /// @memo 2023
-    /// Called externally by new input system to jump
-    /// </summary>
-    private void OnJump()
-    {
-        if (isGrounded)
-        {
-            triggerAnim("Jump");
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);           
-        }
-    }
-    /// <summary>
-    /// @memo 2023
     /// Sets the running attributes to the player
     /// </summary>
-    private void run()
+    protected void run()
     {
         speed = runSpeed;
         if (isGrounded)
@@ -143,7 +111,7 @@ public class PlayerMovement : MonoBehaviour
     /// @memo 2023
     /// Sets the walking attributes to the player
     /// </summary>
-    private void walk()
+    protected void walk()
     {
         speed = walkSpeed;
         if (isGrounded)
@@ -155,7 +123,7 @@ public class PlayerMovement : MonoBehaviour
     /// @memo 2023
     /// Sets the idle attributes to the player
     /// </summary>
-    private void idle()
+    protected void idle()
     {
         if (isGrounded)
         {
@@ -168,7 +136,7 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     /// <param name="_value">The Speed value to set</param>
     /// <param name="_dampTime">The damp time for the animation</param>
-    private void animate(float _value, float _dampTime=0)
+    protected void animate(float _value, float _dampTime = 0)
     {
         anim.SetFloat("Speed", _value, _dampTime, Time.deltaTime);
     }
@@ -177,7 +145,7 @@ public class PlayerMovement : MonoBehaviour
     /// Triggers the animation recieved
     /// </summary>
     /// <param name="_trigger"></param>
-    private void triggerAnim(string _trigger)
+    protected void triggerAnim(string _trigger)
     {
         anim.SetTrigger(_trigger);
     }
