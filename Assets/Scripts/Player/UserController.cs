@@ -1,14 +1,17 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(PlayerMovement))]
-[DefaultExecutionOrder(1)]
 public class UserController : Controller
 {
     public static UserController Instance;
     private void Awake()
     {
         if (Instance == null) { Instance = this; }
-        else { print("Destroy"+Instance.gameObject.name); DestroyImmediate(gameObject); }
+        else {DestroyImmediate(gameObject); }
+        loadPlayer();
+        StartCoroutine(savePlayer());
+        Physics.SyncTransforms();
     }
     /// <summary>
     /// @memo 2023
@@ -21,5 +24,21 @@ public class UserController : Controller
         {
             Shoot();
         }
+    }
+    /// <summary>
+    /// Saves the player position every 15 seconds
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator savePlayer()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(15);
+            SaveSystem.SavePlayerPosition();
+        }
+    }
+    private void loadPlayer()
+    {
+        SaveSystem.LoadPlayerPosition();
     }
 }
